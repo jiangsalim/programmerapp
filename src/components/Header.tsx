@@ -12,7 +12,7 @@ export const Header = () => {
               <Code className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-              CodeLearn
+              PROGRAMMER APP
             </span>
           </div>
         </div>
