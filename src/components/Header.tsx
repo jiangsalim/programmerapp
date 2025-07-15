@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Code, User, Trophy, Book } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Header = () => {
   return (
@@ -32,13 +33,17 @@ export const Header = () => {
           <Badge variant="secondary" className="hidden sm:flex">
             Free Access
           </Badge>
-          <Button variant="outline" size="sm">
-            <User className="h-4 w-4 mr-2" />
-            Sign In
-          </Button>
-          <Button size="sm" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg hover:shadow-primary/25 transition-all duration-300">
-            Get Started
-          </Button>
+          <Link to="/auth">
+            <Button variant="outline" size="sm">
+              <User className="h-4 w-4 mr-2" />
+              Sign In
+            </Button>
+          </Link>
+          <Link to="/auth">
+            <Button size="sm" className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg hover:shadow-primary/25 transition-all duration-300">
+              Get Started
+            </Button>
+          </Link>
         </div>
       </div>
     </header>
