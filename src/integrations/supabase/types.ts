@@ -41,6 +41,92 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_submissions: {
+        Row: {
+          challenge_id: string
+          code: string
+          id: string
+          language: string
+          score: number | null
+          status: string
+          submitted_at: string
+          test_results: Json | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          code: string
+          id?: string
+          language: string
+          score?: number | null
+          status: string
+          submitted_at?: string
+          test_results?: Json | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          code?: string
+          id?: string
+          language?: string
+          score?: number | null
+          status?: string
+          submitted_at?: string
+          test_results?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "programming_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      code_executions: {
+        Row: {
+          code: string
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: string | null
+          language: string
+          memory_used_kb: number | null
+          output: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: string | null
+          language: string
+          memory_used_kb?: number | null
+          output?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: string | null
+          language?: string
+          memory_used_kb?: number | null
+          output?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       code_snippets: {
         Row: {
           code: string
@@ -80,6 +166,157 @@ export type Database = {
         }
         Relationships: []
       }
+      content_likes: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      course_lessons: {
+        Row: {
+          code_examples: Json | null
+          content: string | null
+          course_id: string
+          created_at: string
+          exercises: Json | null
+          id: string
+          lesson_order: number
+          lesson_type: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code_examples?: Json | null
+          content?: string | null
+          course_id: string
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          lesson_order: number
+          lesson_type?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code_examples?: Json | null
+          content?: string | null
+          course_id?: string
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          lesson_order?: number
+          lesson_type?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          category: string
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          difficulty_level: string
+          estimated_hours: number | null
+          id: string
+          is_published: boolean | null
+          language: string | null
+          prerequisites: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string
+          estimated_hours?: number | null
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          prerequisites?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string
+          estimated_hours?: number | null
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          prerequisites?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -110,6 +347,57 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      programming_challenges: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          difficulty: string
+          id: string
+          is_published: boolean | null
+          language: string | null
+          points: number | null
+          solution_code: string | null
+          starter_code: string | null
+          test_cases: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          difficulty?: string
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          points?: number | null
+          solution_code?: string | null
+          starter_code?: string | null
+          test_cases?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          difficulty?: string
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          points?: number | null
+          solution_code?: string | null
+          starter_code?: string | null
+          test_cases?: Json | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -190,6 +478,114 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      study_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          max_members: number | null
+          name: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_members?: number | null
+          name: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_members?: number | null
+          name?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          course_id: string | null
+          created_at: string
+          id: string
+          lesson_id: string | null
+          progress_percentage: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          progress_percentage?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          progress_percentage?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

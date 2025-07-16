@@ -24,6 +24,9 @@ import { TasksSection } from '@/components/dashboard/TasksSection';
 import { CodeEditor } from '@/components/dashboard/CodeEditor';
 import { AIAssistant } from '@/components/dashboard/AIAssistant';
 import { AdminPanel } from '@/components/dashboard/AdminPanel';
+import { CoursesSection } from '@/components/dashboard/CoursesSection';
+import { ChallengesSection } from '@/components/dashboard/ChallengesSection';
+import { SocialSection } from '@/components/dashboard/SocialSection';
 
 const Dashboard = () => {
   const { user, signOut, loading, isAdmin } = useAuth();
@@ -144,35 +147,31 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="notes" className="space-y-6">
+        <Tabs defaultValue="courses" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="notes" className="flex items-center space-x-2">
-              <BookOpen className="h-4 w-4" />
-              <span>Notes</span>
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4" />
-              <span>Tasks</span>
-            </TabsTrigger>
-            <TabsTrigger value="practice" className="flex items-center space-x-2">
-              <Play className="h-4 w-4" />
-              <span>Practice</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="flex items-center space-x-2">
-              <Bot className="h-4 w-4" />
-              <span>AI Assistant</span>
-            </TabsTrigger>
-            <TabsTrigger value="share" className="flex items-center space-x-2">
-              <Share2 className="h-4 w-4" />
-              <span>Community</span>
-            </TabsTrigger>
-            {isAdmin && (
-              <TabsTrigger value="admin" className="flex items-center space-x-2">
-                <Users className="h-4 w-4" />
-                <span>Admin</span>
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="courses">Courses</TabsTrigger>
+            <TabsTrigger value="challenges">Challenges</TabsTrigger>
+            <TabsTrigger value="practice">Practice</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
           </TabsList>
+
+          <TabsContent value="courses">
+            <CoursesSection />
+          </TabsContent>
+
+          <TabsContent value="challenges">
+            <ChallengesSection />
+          </TabsContent>
+
+          <TabsContent value="practice">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CodeEditor />
+              <AIAssistant />
+            </div>
+          </TabsContent>
 
           <TabsContent value="notes">
             <NotesSection />
@@ -182,36 +181,8 @@ const Dashboard = () => {
             <TasksSection />
           </TabsContent>
 
-          <TabsContent value="practice">
-            <CodeEditor />
-          </TabsContent>
-
-          <TabsContent value="ai">
-            <AIAssistant />
-          </TabsContent>
-
-          <TabsContent value="share">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Share2 className="h-5 w-5" />
-                  <span>Community & Sharing</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Share2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Share Your Code</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Connect with other programmers and share your code snippets
-                  </p>
-                  <Button className="bg-gradient-to-r from-primary to-primary-glow">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Share Code Snippet
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="community">
+            <SocialSection />
           </TabsContent>
 
           {isAdmin && (
