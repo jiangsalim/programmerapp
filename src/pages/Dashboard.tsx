@@ -3,7 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Code, 
   BookOpen, 
@@ -27,9 +26,13 @@ import { AdminPanel } from '@/components/dashboard/AdminPanel';
 import { CoursesSection } from '@/components/dashboard/CoursesSection';
 import { ChallengesSection } from '@/components/dashboard/ChallengesSection';
 import { SocialSection } from '@/components/dashboard/SocialSection';
+import { BottomNavigation } from '@/components/ui/bottom-navigation';
+import { UserProfile } from '@/components/ui/user-profile';
+import { Leaderboard } from '@/components/ui/leaderboard';
 
 const Dashboard = () => {
   const { user, signOut, loading, isAdmin } = useAuth();
+  const [activeTab, setActiveTab] = useState('learn');
   const [stats, setStats] = useState({
     totalNotes: 0,
     completedTasks: 0,
@@ -58,140 +61,108 @@ const Dashboard = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-glow">
-                  <Code className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                  PROGRAMMER APP
-                </span>
-              </div>
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'learn':
+        return <CoursesSection />;
+      case 'community':
+        return <SocialSection />;
+      case 'leaderboard':
+        return <Leaderboard />;
+      case 'create':
+        return (
+          <div className="min-h-screen bg-background p-4 pb-24">
+            <div className="grid grid-cols-1 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Create & Practice
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <Code className="h-4 w-4" />
+                        Code Editor
+                      </h3>
+                      <CodeEditor />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <Bot className="h-4 w-4" />
+                        AI Assistant
+                      </h3>
+                      <AIAssistant />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Programming Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TasksSection />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Notes & Documentation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <NotesSection />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Terminal className="h-5 w-5" />
+                    Coding Challenges
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChallengesSection />
+                </CardContent>
+              </Card>
+              
               {isAdmin && (
-                <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Admin
-                </Badge>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Crown className="h-5 w-5" />
+                      Admin Panel
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AdminPanel />
+                  </CardContent>
+                </Card>
               )}
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">
-                Welcome, {user.email?.split('@')[0]}
-              </span>
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-              <Button variant="outline" size="sm" onClick={signOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
           </div>
-        </div>
-      </header>
+        );
+      case 'profile':
+        return <UserProfile />;
+      default:
+        return <CoursesSection />;
+    }
+  };
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Notes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalNotes}</div>
-              <p className="text-xs text-muted-foreground">Programming notes</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tasks</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completedTasks}</div>
-              <p className="text-xs text-muted-foreground">Completed tasks</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Code Snippets</CardTitle>
-              <Terminal className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.codeSnippets}</div>
-              <p className="text-xs text-muted-foreground">Saved snippets</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">AI Chats</CardTitle>
-              <Bot className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.aiConversations}</div>
-              <p className="text-xs text-muted-foreground">AI conversations</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <Tabs defaultValue="courses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="challenges">Challenges</TabsTrigger>
-            <TabsTrigger value="practice">Practice</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="community">Community</TabsTrigger>
-            {isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
-          </TabsList>
-
-          <TabsContent value="courses">
-            <CoursesSection />
-          </TabsContent>
-
-          <TabsContent value="challenges">
-            <ChallengesSection />
-          </TabsContent>
-
-          <TabsContent value="practice">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <CodeEditor />
-              <AIAssistant />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="notes">
-            <NotesSection />
-          </TabsContent>
-
-          <TabsContent value="tasks">
-            <TasksSection />
-          </TabsContent>
-
-          <TabsContent value="community">
-            <SocialSection />
-          </TabsContent>
-
-          {isAdmin && (
-            <TabsContent value="admin">
-              <AdminPanel />
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
+  return (
+    <div className="min-h-screen bg-background">
+      {renderContent()}
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };

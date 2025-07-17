@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Clock, Star, Users, ChevronRight } from "lucide-react";
+import { ArrowLeft, MoreVertical, Award, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Course {
   id: string;
@@ -16,6 +17,8 @@ interface Course {
   language: string;
   estimated_hours: number;
   content: any;
+  icon?: string;
+  color?: string;
 }
 
 interface UserProgress {
@@ -24,27 +27,50 @@ interface UserProgress {
   completed: boolean;
 }
 
+const predefinedCourses = [
+  { title: "Introduction to HTML", icon: "HTML", color: "bg-orange-500", difficulty: "beginner", category: "web-dev", language: "HTML" },
+  { title: "Introduction to CSS", icon: "CSS", color: "bg-blue-500", difficulty: "beginner", category: "web-dev", language: "CSS" },
+  { title: "Introduction to Java", icon: "Java", color: "bg-orange-600", difficulty: "beginner", category: "programming", language: "Java" },
+  { title: "Introduction to JavaScript", icon: "JS", color: "bg-yellow-500", difficulty: "beginner", category: "web-dev", language: "JavaScript" },
+  { title: "C# Intermediate", icon: "C#", color: "bg-purple-500", difficulty: "intermediate", category: "programming", language: "C#" },
+  { title: "Introduction to C++", icon: "C++", color: "bg-blue-600", difficulty: "beginner", category: "programming", language: "C++" },
+  { title: "Tech for Everyone", icon: "⚙️", color: "bg-purple-600", difficulty: "beginner", category: "general", language: "General" },
+  { title: "Python Intermediate", icon: "🐍", color: "bg-blue-500", difficulty: "intermediate", category: "programming", language: "Python" },
+  { title: "Java Intermediate", icon: "Java", color: "bg-orange-600", difficulty: "intermediate", category: "programming", language: "Java" },
+  { title: "JavaScript Intermediate", icon: "JS", color: "bg-yellow-500", difficulty: "intermediate", category: "web-dev", language: "JavaScript" },
+  { title: "C++ Intermediate", icon: "C++", color: "bg-blue-600", difficulty: "intermediate", category: "programming", language: "C++" },
+  { title: "C Intermediate", icon: "C", color: "bg-blue-500", difficulty: "intermediate", category: "programming", language: "C" },
+  { title: "SQL Intermediate", icon: "SQL", color: "bg-green-500", difficulty: "intermediate", category: "database", language: "SQL" },
+  { title: "Angular", icon: "A", color: "bg-red-500", difficulty: "intermediate", category: "web-dev", language: "TypeScript" },
+  { title: "Python Developer", icon: "🐍", color: "bg-blue-500", difficulty: "advanced", category: "data-science", language: "Python" },
+  { title: "Coding for Data", icon: "⚛️", color: "bg-purple-500", difficulty: "intermediate", category: "data-science", language: "Python" },
+  { title: "Front-end for Beginners", icon: "💻", color: "bg-pink-500", difficulty: "beginner", category: "web-dev", language: "HTML/CSS/JS" },
+  { title: "Data Analytics with AI", icon: "📊", color: "bg-blue-600", difficulty: "advanced", category: "ai-ml", language: "Python" },
+  { title: "AI in Data Analysis", icon: "📈", color: "bg-green-600", difficulty: "advanced", category: "ai-ml", language: "Python" },
+  { title: "Ethical AI Foundations", icon: "⚖️", color: "bg-orange-500", difficulty: "intermediate", category: "ai-ml", language: "General" },
+  { title: "Write with AI", icon: "✏️", color: "bg-orange-500", difficulty: "beginner", category: "ai-ml", language: "General" },
+  { title: "AI-Powered A/B Testing", icon: "🧪", color: "bg-pink-600", difficulty: "intermediate", category: "ai-ml", language: "Python" },
+  { title: "Prompt Engineering", icon: "AI", color: "bg-blue-500", difficulty: "intermediate", category: "ai-ml", language: "General" },
+  { title: "Visualize Your Data", icon: "📊", color: "bg-pink-500", difficulty: "intermediate", category: "data-science", language: "Python" },
+  { title: "Introduction to LLMs", icon: "🧠", color: "bg-green-500", difficulty: "intermediate", category: "ai-ml", language: "Python" },
+  { title: "ML for Beginners", icon: "🔗", color: "bg-purple-500", difficulty: "beginner", category: "ai-ml", language: "Python" },
+  { title: "Brainstorm with AI", icon: "💡", color: "bg-orange-500", difficulty: "beginner", category: "ai-ml", language: "General" },
+  { title: "Think Creatively with AI", icon: "🎯", color: "bg-red-500", difficulty: "intermediate", category: "ai-ml", language: "General" },
+  { title: "Project Planning with AI", icon: "📋", color: "bg-blue-600", difficulty: "intermediate", category: "ai-ml", language: "General" },
+  { title: "Research with AI", icon: "🔍", color: "bg-orange-500", difficulty: "beginner", category: "ai-ml", language: "General" },
+  { title: "Social Media Marketing with AI", icon: "👍", color: "bg-blue-500", difficulty: "intermediate", category: "marketing", language: "General" },
+  { title: "SEO with AI", icon: "🔍", color: "bg-pink-600", difficulty: "intermediate", category: "marketing", language: "General" },
+  { title: "Vibe Coding", icon: "</", color: "bg-pink-600", difficulty: "beginner", category: "programming", language: "General" }
+];
+
 export const CoursesSection = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [selectedView, setSelectedView] = useState<"all" | "my">("all");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const categories = [
-    { value: "all", label: "All Courses" },
-    { value: "data-science", label: "Data Science" },
-    { value: "web-dev", label: "Web Development" },
-    { value: "mobile-dev", label: "Mobile Development" },
-    { value: "ai-ml", label: "AI & Machine Learning" },
-    { value: "devops", label: "DevOps" }
-  ];
-
-  const difficultyColors = {
-    beginner: "bg-green-500",
-    intermediate: "bg-yellow-500",
-    advanced: "bg-red-500"
-  };
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchCourses();
@@ -60,7 +86,28 @@ export const CoursesSection = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setCourses(data || []);
+      
+      // Merge database courses with predefined courses
+      const dbCourses = data || [];
+      const allCourses = [
+        ...dbCourses,
+        ...predefinedCourses.filter(pc => 
+          !dbCourses.some(dc => dc.title === pc.title)
+        ).map((pc, index) => ({
+          id: `predefined-${index}`,
+          title: pc.title,
+          description: `Learn ${pc.title} from basics to advanced concepts`,
+          category: pc.category,
+          difficulty_level: pc.difficulty,
+          language: pc.language,
+          estimated_hours: pc.difficulty === 'beginner' ? 20 : pc.difficulty === 'intermediate' ? 35 : 50,
+          content: { modules: [`Introduction to ${pc.language}`, "Practical Examples", "Advanced Concepts", "Final Project"] },
+          icon: pc.icon,
+          color: pc.color
+        }))
+      ];
+      
+      setCourses(allCourses);
     } catch (error) {
       console.error("Error fetching courses:", error);
       toast({
@@ -75,7 +122,6 @@ export const CoursesSection = () => {
 
   const fetchUserProgress = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
@@ -85,6 +131,11 @@ export const CoursesSection = () => {
 
       if (error) throw error;
       setUserProgress(data || []);
+      
+      // Get enrolled courses
+      const enrolledIds = (data || []).map(p => p.course_id);
+      const enrolled = courses.filter(c => enrolledIds.includes(c.id));
+      setEnrolledCourses(enrolled);
     } catch (error) {
       console.error("Error fetching user progress:", error);
     }
@@ -92,17 +143,10 @@ export const CoursesSection = () => {
 
   const enrollInCourse = async (courseId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Check if already enrolled
-      const { data: existing } = await supabase
-        .from("user_progress")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId)
-        .single();
-
+      const existing = userProgress.find(p => p.course_id === courseId);
       if (existing) {
         toast({
           title: "Already Enrolled",
@@ -138,9 +182,17 @@ export const CoursesSection = () => {
     }
   };
 
-  const filteredCourses = selectedCategory === "all" 
-    ? courses 
-    : courses.filter(course => course.category === selectedCategory);
+  const getDifficultyDots = (difficulty: string) => {
+    const count = difficulty === 'beginner' ? 1 : difficulty === 'intermediate' ? 2 : 3;
+    return Array.from({ length: 3 }, (_, i) => (
+      <div
+        key={i}
+        className={`w-1.5 h-1.5 rounded-full ${
+          i < count ? 'bg-white' : 'bg-white/30'
+        }`}
+      />
+    ));
+  };
 
   const getUserProgress = (courseId: string) => {
     return userProgress.find(p => p.course_id === courseId);
@@ -148,145 +200,147 @@ export const CoursesSection = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold">Learning Paths</h2>
+      <div className="min-h-screen bg-background">
+        <div className="bg-primary px-4 py-6">
+          <div className="flex items-center gap-3 text-white">
+            <ArrowLeft className="h-6 w-6" />
+            <h1 className="text-xl font-semibold">All courses</h1>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="p-4 space-y-4">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-muted rounded"></div>
-                  <div className="h-3 bg-muted rounded w-3/4"></div>
+            <div key={i} className="bg-card rounded-lg p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-muted rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
+  const displayedCourses = selectedView === "my" ? enrolledCourses : courses;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <BookOpen className="h-6 w-6 text-primary" />
-        <h2 className="text-2xl font-bold">Learning Paths</h2>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-primary px-4 py-6">
+        <div className="flex items-center gap-3 text-white">
+          <ArrowLeft className="h-6 w-6" />
+          <h1 className="text-xl font-semibold">All courses</h1>
+        </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
+      {/* My Courses Section */}
+      {enrolledCourses.length > 0 && selectedView === "all" && (
+        <div className="px-4 py-6">
+          <h2 className="text-muted-foreground text-sm font-medium mb-4">My Courses</h2>
+          <div className="space-y-3">
+            {enrolledCourses.slice(0, 2).map((course) => {
+              const progress = getUserProgress(course.id);
+              return (
+                <Card key={course.id} className="bg-card border-none">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${course.color || 'bg-green-500'}`}>
+                        {course.icon || course.language?.charAt(0) || 'C'}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground mb-1">{course.title}</h3>
+                        <p className="text-muted-foreground text-sm">In progress</p>
+                        {progress && (
+                          <Progress value={progress.progress_percentage} className="h-1 mt-2" />
+                        )}
+                      </div>
+                      <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Toggle View */}
+      <div className="px-4 py-2">
+        <div className="flex gap-4">
           <Button
-            key={category.value}
-            variant={selectedCategory === category.value ? "default" : "outline"}
-            onClick={() => setSelectedCategory(category.value)}
-            size="sm"
+            variant={selectedView === "all" ? "default" : "ghost"}
+            onClick={() => setSelectedView("all")}
+            className="text-sm"
           >
-            {category.label}
+            More courses
           </Button>
-        ))}
+          {enrolledCourses.length > 0 && (
+            <Button
+              variant={selectedView === "my" ? "default" : "ghost"}
+              onClick={() => setSelectedView("my")}
+              className="text-sm"
+            >
+              My Courses
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => {
+      {/* Courses List */}
+      <div className="px-4 pb-24 space-y-0">
+        {displayedCourses.map((course) => {
           const progress = getUserProgress(course.id);
           const isEnrolled = !!progress;
 
           return (
-            <Card key={course.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1 flex-1">
-                    <CardTitle className="text-lg">{course.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {course.description}
-                    </CardDescription>
-                  </div>
-                  <Badge 
-                    variant="secondary" 
-                    className={`${difficultyColors[course.difficulty_level as keyof typeof difficultyColors]} text-white`}
-                  >
-                    {course.difficulty_level}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {course.estimated_hours}h
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {course.language}
-                  </div>
-                </div>
-
-                {/* Course Modules */}
-                {course.content?.modules && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm">What you'll learn:</h4>
-                    <div className="space-y-1">
-                      {course.content.modules.slice(0, 3).map((module: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <ChevronRight className="h-3 w-3" />
-                          {module}
-                        </div>
-                      ))}
-                      {course.content.modules.length > 3 && (
-                        <div className="text-sm text-muted-foreground">
-                          +{course.content.modules.length - 3} more modules
-                        </div>
-                      )}
+            <Card key={course.id} className="bg-card border-none rounded-none border-b border-border/50 last:border-b-0">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${course.color || 'bg-green-500'}`}>
+                    {course.icon || course.language?.charAt(0) || 'C'}
+                    <div className="absolute -bottom-1 -right-1 flex gap-0.5">
+                      {getDifficultyDots(course.difficulty_level)}
                     </div>
                   </div>
-                )}
-
-                {/* Progress Bar for Enrolled Courses */}
-                {isEnrolled && progress && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>{progress.progress_percentage}%</span>
-                    </div>
-                    <Progress value={progress.progress_percentage} className="h-2" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">{course.title}</h3>
+                    {isEnrolled && progress && (
+                      <div className="mb-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-muted-foreground">Progress</span>
+                          <span className="text-xs text-muted-foreground">{progress.progress_percentage}%</span>
+                        </div>
+                        <Progress value={progress.progress_percentage} className="h-1" />
+                      </div>
+                    )}
+                    {!isEnrolled && (
+                      <Button
+                        onClick={() => enrollInCourse(course.id)}
+                        size="sm"
+                        className="mt-2"
+                      >
+                        Start Course
+                      </Button>
+                    )}
                   </div>
-                )}
-
-                <Button 
-                  onClick={() => enrollInCourse(course.id)}
-                  disabled={isEnrolled}
-                  className="w-full"
-                  variant={isEnrolled ? "secondary" : "default"}
-                >
-                  {isEnrolled ? "Continue Learning" : "Start Course"}
-                </Button>
+                  <div className="flex flex-col items-end gap-2">
+                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    {isEnrolled && progress?.completed && (
+                      <div className="flex items-center gap-1">
+                        <Award className="h-4 w-4 text-yellow-500" />
+                        <Star className="h-4 w-4 text-yellow-500" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
-
-      {filteredCourses.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No courses found</h3>
-          <p className="text-muted-foreground">
-            {selectedCategory === "all" 
-              ? "No courses available at the moment" 
-              : `No courses found in the ${categories.find(c => c.value === selectedCategory)?.label} category`
-            }
-          </p>
-        </div>
-      )}
     </div>
   );
 };
